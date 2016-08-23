@@ -62,6 +62,9 @@ public:
 	void SetEmote(int Emote, int Tick);
 
 	bool IsAlive() const { return m_Alive; }
+	
+	void Teleport(vec2 Pos);
+	
 	class CPlayer *GetPlayer() { return m_pPlayer; }
 
 private:

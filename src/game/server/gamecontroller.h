@@ -70,6 +70,7 @@ public:
 	virtual ~IGameController();
 
 	virtual void DoWincheck();
+	virtual int GetTeleport();
 
 	void DoWarmup(int Seconds);
 
@@ -140,6 +141,12 @@ public:
 	bool CheckTeamBalance();
 	bool CanChangeTeam(CPlayer *pPplayer, int JoinTeam);
 	int ClampTeam(int Team);
+	
+	vec2 TeleportEntries[256];
+	vec2 TeleportExits[256];
+
+	int m_EntryCount;
+	int m_ExitCount;
 
 	virtual void PostReset();
 };

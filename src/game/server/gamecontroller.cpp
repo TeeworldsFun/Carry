@@ -378,8 +378,6 @@ void IGameController::OnCharacterSpawn(class CCharacter *pChr)
 		if(g_Config.m_SvInsta & 16) pChr->GiveWeapon(WEAPON_RIFLE, -1);
 		if(g_Config.m_SvInsta & 32) pChr->GiveNinja();
 	}
-	if((g_Config.m_SvInsta & 31) == 0)
-		pChr->GiveWeapon(WEAPON_HAMMER, -1);
 }
 
 void IGameController::DoWarmup(int Seconds)
@@ -744,5 +742,10 @@ int IGameController::ClampTeam(int Team)
 		return TEAM_SPECTATORS;
 	if(IsTeamplay())
 		return Team&1;
+	return 0;
+}
+
+int IGameController::GetTeleport()
+{
 	return 0;
 }

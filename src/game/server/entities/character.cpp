@@ -80,7 +80,10 @@ bool CCharacter::Spawn(CPlayer *pPlayer, vec2 Pos)
 	for(int i = WEAPON_HAMMER; i<= WEAPON_RIFLE;i++)
 	{
 		if(m_aWeapons[i].m_Got)
+		{
 			m_ActiveWeapon = i;
+			break;
+		}
 	}
 	return true;
 }
@@ -584,7 +587,15 @@ void CCharacter::Tick()
 
 	// handle Weapons
 	HandleWeapons();
-
+	
+	for(int i = 0;i <= GameServer()->m_pController->m_EntryCount; i++)
+	{
+		if(absolute((m_Pos-GameServer()->m_pController->TeleportEntries[i]).x) <= 20.0f && absolute((m_Pos-GameServer()->m_pController->TeleportEntries[i]).y) <= 20.0f)
+		{
+			if(GameServer()->m_pController->GetTeleport() != i)
+			Teleport(GameServer()->m_pController->TeleportEntries[GameServer()->m_pController->GetTeleport()]);
+		}
+	}
 	// Previnput
 	m_PrevInput = m_Input;
 	return;
@@ -889,4 +900,11 @@ void CCharacter::Snap(int SnappingClient)
 	}
 
 	pCharacter->m_PlayerFlags = GetPlayer()->m_PlayerFlags;
+}
+
+void CCharacter::Teleport(vec2 Pos)
+{
+	m_Pos = Pos;
+	m_Core.m_Pos = m_Pos;
+	m_Core.m_HookState = HOOK_IDLE;
 }

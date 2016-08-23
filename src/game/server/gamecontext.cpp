@@ -14,7 +14,6 @@
 #include "gamemodes/ctf.h"
 #include "gamemodes/mod.h"
 #include "gamemodes/carry.h"
-#include "gamemodes/dom.h"
 
 enum
 {
@@ -1508,8 +1507,6 @@ void CGameContext::OnInit(/*class IKernel *pKernel*/)
 		m_pController = new CGameControllerTDM(this);
 	else if(str_comp(g_Config.m_SvGametype, "carry") == 0)
 		m_pController = new CGameControllerCARRY(this);
-	else if(str_comp(g_Config.m_SvGametype, "dom") == 0)
-		m_pController = new CGameControllerDOM(this);
 	else
 		m_pController = new CGameControllerDM(this);
 
@@ -1543,6 +1540,19 @@ void CGameContext::OnInit(/*class IKernel *pKernel*/)
 			}
 		}
 	}
+	int x = pTileMap->m_Width/2;
+	int y = pTileMap->m_Height/2;
+	vec2 Pos(x*32.0f+16.0f,y*32.0f+16.0f);
+	while(y < pTileMap->m_Height)
+	{
+		if(!m_Collision.CheckPoint(x*32.0f+16.0f,y*32.0f+16.0f) && m_Collision.CheckPoint(x*32.0f+16.0f,(y+1)*32.0f+16.0f))
+		{
+			Pos = vec2(x*32.0f+16.0f,y*32.0f+16.0f);
+			break;
+		}
+		y++;
+	}
+	m_pController->OnEntity(-1, Pos); //place Flag
 
 	//game.world.insert_entity(game.Controller);
 

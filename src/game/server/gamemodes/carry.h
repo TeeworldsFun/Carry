@@ -16,8 +16,11 @@ public:
 	virtual bool OnEntity(int Index, vec2 Pos);
 	virtual int OnCharacterDeath(class CCharacter *pVictim, class CPlayer *pKiller, int Weapon);
 	virtual void OnCharacterSpawn(class CCharacter *pChr);
+	virtual int GetTeleport();
 	// add more virtual functions here if you wish
-	class CFlag *m_F;
+	class CFlag *m_F;	
+	vec2 FlagSpawns[256];
+	int m_FlagStandCount;
 };
 
 

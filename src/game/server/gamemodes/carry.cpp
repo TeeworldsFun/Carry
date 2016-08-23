@@ -9,6 +9,10 @@
 #include <game/server/player.h>
 #include <game/server/gamecontext.h>
 #include "carry.h"
+#include <cstdlib>
+#include <iostream>
+#include <ctime>
+#include <cmath>
 
 CGameControllerCARRY::CGameControllerCARRY(class CGameContext *pGameServer)
 : IGameController(pGameServer)
@@ -18,7 +22,9 @@ CGameControllerCARRY::CGameControllerCARRY(class CGameContext *pGameServer)
 	m_F=0;
 	m_pGameType = "carry";
 	m_GameFlags = GAMEFLAG_FLAGS;
-	//m_GameFlags = GAMEFLAG_TEAMS; // GAMEFLAG_TEAMS makes it a two-team gamemode
+	m_EntryCount = 0;
+	m_ExitCount = 0;
+	m_FlagStandCount = 0;
 }
 
 bool CGameControllerCARRY::OnEntity(int Index, vec2 Pos)
@@ -26,15 +32,40 @@ bool CGameControllerCARRY::OnEntity(int Index, vec2 Pos)
 
 	if(IGameController::OnEntity(Index,Pos))
 		return true;
-	if(m_F)
-		return false;
+	if(Index == ENTITY_WEAPON_RIFLE+1)
+	{
+		TeleportEntries[++m_EntryCount-1] = Pos;
+		return true;
+	}
+	if(Index == ENTITY_WEAPON_RIFLE+2)
+	{
+		TeleportExits[++m_ExitCount-1] = Pos;
+		return true;
+	}
+
 	if(Index == ENTITY_FLAGSTAND_RED)
 	{
+		FlagSpawns[++m_FlagStandCount-1] = Pos;
+/*		CFlag *F = new CFlag(&GameServer()->m_World, TEAM_RED);
+		F->m_StandPos = Pos;
+		F->m_Pos = Pos;
+		m_F = F;
+		GameServer()->m_World.InsertEntity(F);*/
+		return true;
+	}
+	if(!m_F && Index == -1)
+	{
+		if(m_FlagStandCount)
+		{
+			std::srand(std::time(0)); // use current time as seed for random generator
+			int random_variable = std::rand()%m_FlagStandCount;
+			Pos = FlagSpawns[random_variable];
+		}
 		CFlag *F = new CFlag(&GameServer()->m_World, TEAM_RED);
 		F->m_StandPos = Pos;
 		F->m_Pos = Pos;
 		m_F = F;
-		GameServer()->m_World.InsertEntity(F);
+		GameServer()->m_World.InsertEntity(F);	
 		return true;
 	}
 	return false;
@@ -59,6 +90,9 @@ void CGameControllerCARRY::Tick()
 		GameServer()->Console()->Print(IConsole::OUTPUT_LEVEL_DEBUG, "game", "flag_return");
 		GameServer()->CreateSoundGlobal(SOUND_CTF_RETURN);
 		F->Reset();
+		int random_variable = std::rand()%m_FlagStandCount;
+		if(m_FlagStandCount)
+			F->m_Pos = FlagSpawns[random_variable];
 		return;
 	}
 	if(F->m_pCarryingCharacter)
@@ -112,6 +146,9 @@ void CGameControllerCARRY::Tick()
 			{
 				GameServer()->CreateSoundGlobal(SOUND_CTF_RETURN);
 				F->Reset();
+				int random_variable = std::rand()%m_FlagStandCount;
+				if(m_FlagStandCount)
+					F->m_Pos = FlagSpawns[random_variable];
 			}
 			else
 			{
@@ -163,8 +200,24 @@ void CGameControllerCARRY::Snap(int SnappingClient)
 	}
 	else
 		pGameDataObj->m_FlagCarrierRed = FLAG_MISSING;
+	pGameDataObj->m_FlagCarrierBlue = FLAG_MISSING;
 }
 void CGameControllerCARRY::OnCharacterSpawn(class CCharacter *pChr)
 {
 	IGameController::OnCharacterSpawn(pChr);
+}
+
+int CGameControllerCARRY::GetTeleport()
+{
+	float min_distance = 0.0;
+	int exit = 0;
+	for(int i = 0; i < m_EntryCount; i++)
+	{
+		if(1.0/((TeleportEntries[i]-m_F->m_Pos).x*(TeleportEntries[i]-m_F->m_Pos).x + (TeleportEntries[i]-m_F->m_Pos).y*(TeleportEntries[i]-m_F->m_Pos).y) > min_distance)
+		{
+			min_distance = 1.0/((TeleportEntries[i]-m_F->m_Pos).x*(TeleportEntries[i]-m_F->m_Pos).x + (TeleportEntries[i]-m_F->m_Pos).y*(TeleportEntries[i]-m_F->m_Pos).y);
+			exit = i;
+		}
+	}
+	return exit;
 }
